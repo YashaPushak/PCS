@@ -1617,6 +1617,8 @@ class PCS:
         if(self.isParameter(obj)):
             #The object is a parameter, so we return the value
             #for the parameter
+            if(obj['id'] not in config.keys()):
+                raise Exception("There is not enough information about the parameter configuration to determine if the parameter should be active.")
             return config[obj['id']]
         elif(self.getAttr(obj,'type') == 'value'):
             return self.getAttr(obj,'text')
