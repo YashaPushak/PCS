@@ -1630,7 +1630,9 @@ class PCS:
                 return self.evalClause(obj['A'],config) and self.evalClause(obj['B'],config)
             elif(operator == '||'):
                 return self.evalClause(obj['A'],config) or self.evalClause(obj['B'],config)
-            elif(operator in ['<=','>=','<','>']):
+            elif(operator in ['<=','>=','<','>']): #Update 2019-03-06: I just realized that '<=' and '>=' apparently aren't supported by SMAC. I'm going to leave them
+                #here even though they're not actually supported in the parsing code I have above either. This way if ever desired the parsing code can be easily
+                #extended to include them. 
                 #We don't support ordinals here, so this won't handle them
                 #correctly.
                 A = float(self.evalClause(obj['A'],config))
@@ -1671,5 +1673,23 @@ class PCS:
                 return A in vals
             
         raise Exception("We should never have made it here.")
+
+
+    def getDefault(self):
+        #Author: Yasha Pushak
+        #Created: 2018-02-20
+        #Last updated: 2019-03-07
+        #Returns the default configuration as a dict.
+
+        config = {}
+        for param in self.paramList:
+            name = self.getAttr(param,'name')
+            if(self.isNumeric(param)):
+                default = self.getAttr(param,'default')
+            else:
+                default = self.getAttr(self.getAttr(param,'default'),'text')
+            config[name] = default
+
+        return config
 
 

@@ -46,3 +46,8 @@ except Exception:
     exception = True
 if(not exception):
     print("No exception was raised")
+
+
+print('\n' + '*'*50)
+print("You can also get the default configuration as a dict. For example:")
+print(pcs.getDefault())
