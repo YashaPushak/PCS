@@ -1412,6 +1412,23 @@ class PCS:
             raise
 
 
+    def isParameter(self,obj):
+        #Author: Yasha Pushak
+        #Created Before: 2019-06-07
+        #Last updated: 2019-06-07
+        #Returns true of the object is any kind of parameter
+        #Throws an exception if there is no type accosiated with the "object"
+        #Returns false otherwise.
+        obj = self.getObject(obj)
+
+        try:
+            return (obj['type'] in ['real','integer','categorical','ordinal'])
+        except:
+            print('[Error]: Unable to evaluate the type of the following non-"object".')
+            print(obj)
+            raise
+
+
 
     def isParameter(self,obj):
         #Author: Yasha Pushak
@@ -1538,7 +1555,7 @@ class PCS:
     def getParentConditions(self,param):
         #Author: YP
         #Created: 2018-10-22
-        #Last updated: 2019-03-07
+        #Last updated: 2019-04-26
         #Gets all of the parent clauses for the parameter
 
         conditions = []
@@ -1550,6 +1567,26 @@ class PCS:
 
         return conditions
 
+
+    def getChildConditions(self,param):
+        #Author: YP
+        #Created: 2019-06-07
+        #Last updated: 2019-06-07
+        #Gets all of the parent clauses for the parameter
+
+        conditions = []
+        param = self.getObject(param)
+
+        for condition in self.conditionList:
+            clause = self.getAttr(condition,'clauses')
+            if(self.getAttr(clause,'A') == param['id'] or self.getAttr(clause,'B') == param['id']):
+                conditions.append(condition)
+
+        return conditions
+
+
+
+
     def isActive(self,param,config):
         #Author: YP
         #Created: 2018-10-22
@@ -1558,6 +1595,11 @@ class PCS:
         #for the parameter. param
         #config should be a dict containing parameter names, objects, or ids as 
         #keys with parameter values as text, objects, or ids as values.
+        #if a parameter is not specified in config, then it is assumed to be a
+        #child which has been turned off.
+        #NOTE: This only checks on level deep to see if a paramter is turned on
+        #If a child's parents are turned off this may be fooled into thinking 
+        #that the parameter is active... 
 
         if(type(param) is str and not self.isID(param)):
             param = self.lookupParamID(param)
@@ -1618,7 +1660,8 @@ class PCS:
             #The object is a parameter, so we return the value
             #for the parameter
             if(obj['id'] not in config.keys()):
-                raise Exception("There is not enough information about the parameter configuration to determine if the parameter should be active.")
+                #raise Exception("There is not enough information about the parameter configuration to determine if the parameter should be active.")
+                return None
             return config[obj['id']]
         elif(self.getAttr(obj,'type') == 'value'):
             return self.getAttr(obj,'text')
@@ -1671,7 +1714,8 @@ class PCS:
                 for v in B:
                     vals.append(self.getAttr(v,'text'))
                 return A in vals
-            
+           
+        print(obj) 
         raise Exception("We should never have made it here.")
 
 
@@ -1692,4 +1736,35 @@ class PCS:
 
         return config
 
+    def removeParameter(self,p):
+        #Author: YP
+        #Created: 2019-06-07
+        #Last updated: 2019-06-07
+        #Removes a parameter, any parent conditional statements,
+        #and the parameter's children if they are trivially turned off as a result
+        #of the removal.
+        #Note that we will only support conditional statements without && and ||.
+
+        #Remove this parameter
+        pid =  self.getAttr(p,'id')
+        
+        #Remove any parent conditions
+        for c in self.getParentConditions(pid):
+            cid = self.getAttr(c,'id')
+            if(cid in self.doc['content']):
+                i = self.doc['content'].index(cid)
+                self.doc['content'][i] = self.getAttr(self.newComment(self.printObject(cid)[0]),'id')
+
+        #Remove any children parameters (and their conditions)
+        for c in self.getChildConditions(pid):
+            cid = self.getAttr(c,'id')
+            #Check if the condition is satisfied or not
+            default = self.getAttr(p,'default')
+            #If it is not true, then we remove the condition and it's child parameter.
+            if(not self.evalClause(self.getAttr(cid,'clauses'),{pid:default})):
+                self.removeParameter(self.getAttr(cid,'child'))
+
+        if(pid in self.doc['content']):
+            i = self.doc['content'].index(pid)
+            self.doc['content'][i] = self.getAttr(self.newComment(self.printObject(pid)[0]),'id')
 
