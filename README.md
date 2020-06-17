@@ -14,7 +14,7 @@ the format used by SMAC, ParamILS and GPS. It is also used by GPS.
     import PCS
 
     # Read in your pcs file
-    PCS.PCS('examples/params-lkh.pcs')
+    pcs = PCS.PCS('examples/params-lkh.pcs')
 
     # Print the file to the console (possibly with a newer format)
     # Note that it prints in the most recent version of the pcs file 
