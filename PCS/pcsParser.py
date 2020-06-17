@@ -20,7 +20,9 @@ import copy
 
 
 class PCS:
-    "A parameter configuration space object"
+    """
+    A collection of useful functions for parsing and writing parameter configuration space (.pcs) files.
+    """
 
     lineEnd = '(( *$)|( *#.*$))'
     nextID = 0
@@ -38,27 +40,19 @@ class PCS:
 
         self.parseDoc(infile)
 
-
-
     def parseDoc(self,infile):
-        #Author: Yasha Pushak
-        #Last Updated: October 27th, 2016
-        #
-        #This function parses a parameter configuration space file of the format
-        #typically used by SMAC, and then returns three data structures
-        #that represent this information. 
-        #Note: I am almost certainly going to require that parameter values
-        #may not contain parameter names as a substring. 
-        #
-        #Input:
-        #    infile - a parameter configuration space file
-        #Output:
-        #    doc - A document "object" that represents the parameter configuration 
-        #          space document
-        #    paramList - A datastructure that represents all of the parameters. 
-        #    conditionList - A datastructure that represents all of the condition statements
-        #    forbiddenList - A datastructure that represents all of the forbidden parameter combinations. 
-      
+        """parseDoc
+
+        This function parses a parameter configuration space file of the format
+        used by GPS and SMAC.
+
+        Note: parameter values may not contain parameter names as a substring. 
+ 
+        Parameters
+        ----------
+        infile : str
+            The name and location of the parameter configuration space file to parse
+        """
         #An array of IDs that represents the parameter configuration space document.
         self.doc = self.newObject()
         #Set the type of the document "object"
@@ -1768,3 +1762,29 @@ class PCS:
             i = self.doc['content'].index(pid)
             self.doc['content'][i] = self.getAttr(self.newComment(self.printObject(pid)[0]),'id')
 
+
+    def removeInactive(self,config):
+        #Author: YP
+        #Created: 2019-04-26
+        #Last updated: 2019-06-28
+        #Removes all inactive child parameters.
+        #config = {'p1':v1,'p2':v2,...}
+
+        #Now reduce the configuration only to the remaining active parameters.
+        #We need to keep on doing this until no changes occur, since there may
+        #be grandchildren that are not turned off correctly in the first pass
+        #that removes their parents.
+        oldConfig = config
+        reducedConfig = {}
+        changed = True
+        while(changed):
+            changed = False
+            for p in oldConfig.keys():
+                if(self.isActive(p,oldConfig)):
+                    reducedConfig[p] = oldConfig[p]
+                else:
+                    changed = True
+            oldConfig = reducedConfig
+            reducedConfig = {}
+
+        return oldConfig
