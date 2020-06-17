@@ -43,4 +43,13 @@ set in such a way that the child is active.
 Unfortunately, the fact that I did things in unusual ways means that the
 documentation of the functions available in the parser is quite poor at this 
 time. In some cases, you may find some helpful inline comments available in
-the source code. Sorry for any inconvenience!
+the source code. Sorry in advance for any inconvenience!
+
+## Contact
+
+Yasha Pushak
+ypushak@cs.ubc.ca
+
+PhD Student & Vanier Scholar
+Department of Computer Science
+The University of British Columbia
